@@ -28,4 +28,4 @@
 
 ## verify_specific_image.py
 
-从原始mnist数据集中直接恢复出指定的一行图片，以供比对。
+从原始mnist数据集中直接恢复出指定的一张图片，以供比对。
