@@ -13,3 +13,4 @@ models_ckpt/
 /dataset_downloaded/mnist_float/
 /dataset_downloaded/mnist_float/*.bin
 /exported_models/*
+/inference_log.txt
