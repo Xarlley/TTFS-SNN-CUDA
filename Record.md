@@ -112,3 +112,16 @@ nvcc snn_inference.cu -o snn_inference
 ```bash
 python snn_inference.py 0
 ```
+
+迭代：
+`snn_inference.cu`有如下问题
+1. 遗漏了原作者的权重指数衰减
+2. 处理bias时出现错误
+3. tc和td与原作者的处理方式不同。
+
+修改后，得到`snn_inference4.cu`。但是，`snn_inference4.cu`在推理时出现了一个现象：凡是有推理输出的，都能够推理正确，但是有大概30%的图片，并没有任何最终输出脉冲（打印显示所有Class都是Did not fire）。此问题暂时无法解决。由于问题未解决，暂时不修改作为比对的`snn_inference.py`代码
+
+```bash
+nvcc snn_inference4.cu -o snn_inference4
+./snn_inference 0
+```
