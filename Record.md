@@ -149,3 +149,5 @@ python main_inject_getweight2.py     --dataset=MNIST     --ann_model=CNN     --m
 ```
 
 经过这次修改，`snn_inference4.cu`的准确率直接提升到了99%左右，`snn_inference5.cu`的准确率提升到了99.6%左右。这是一次非常成功的改进。
+
+`snn_inference.py`的运行结果是错误的，已经没有意义，废弃，不再作为任何参考。
