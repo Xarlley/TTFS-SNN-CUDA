@@ -21,7 +21,7 @@ for i in {0..4999}; do
     echo "" >> "$log_file"  # 空行分隔
 
     # 捕获程序输出
-    output=$(./snn_inference5 $i 2>&1)  # 捕获 stdout 和 stderr
+    output=$(./snn_inference $i 2>&1)  # 捕获 stdout 和 stderr
 
     # 如果输出为空，记录提示
     if [ -z "$output" ]; then
