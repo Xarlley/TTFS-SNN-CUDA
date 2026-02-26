@@ -4,11 +4,74 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
+import os
+import tarfile
+import pickle
 
+def load_local_cifar10(filepath):
+    if not os.path.exists(filepath):
+        # 如果找不到本地文件，尝试回退到默认位置或报错
+        print(f"Error: Local dataset file not found at {filepath}")
+        # 这里你可以选择抛出异常，或者尝试去默认路径找
+        raise FileNotFoundError(f"Please ensure {filepath} exists.")
+
+    print(f"Loading CIFAR-10 from local file: {filepath}")
+    
+    train_images = []
+    train_labels = []
+    test_images = None
+    test_labels = None
+
+    with tarfile.open(filepath, 'r:gz') as tar:
+        # CIFAR-10 python版压缩包内的文件夹名称通常是 'cifar-10-batches-py'
+        # 训练集: data_batch_1 ~ 5
+        for i in range(1, 6):
+            member_name = f'cifar-10-batches-py/data_batch_{i}'
+            try:
+                f = tar.extractfile(member_name)
+                if f:
+                    entry = pickle.load(f, encoding='bytes')
+                    train_images.append(entry[b'data'])
+                    train_labels.extend(entry[b'labels'])
+            except KeyError:
+                print(f"Warning: {member_name} not found in tar file.")
+
+        # 测试集: test_batch
+        try:
+            f = tar.extractfile('cifar-10-batches-py/test_batch')
+            if f:
+                entry = pickle.load(f, encoding='bytes')
+                test_images = entry[b'data']
+                test_labels = entry[b'labels']
+        except KeyError:
+            print("Warning: test_batch not found in tar file.")
+
+    # 拼接并转换格式
+    train_images = np.concatenate(train_images)
+    train_labels = np.array(train_labels)
+    test_images = np.array(test_images)
+    test_labels = np.array(test_labels)
+
+    # 原始数据格式是 (N, 3072)，即 (N, 3*32*32)，通道顺序为 RGB (Channel First)
+    # 转换为 Keras 默认的 (N, 32, 32, 3) (Height, Width, Channel)
+    train_images = train_images.reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+    test_images = test_images.reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1)
+
+    # 标签形状转换为 (N, 1) 以匹配 Keras 输出
+    train_labels = train_labels.reshape(-1, 1)
+    test_labels = test_labels.reshape(-1, 1)
+
+    return (train_images, train_labels), (test_images, test_labels)
 
 def load(conf):
     print("load CIFAR10 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar10.load_data()
+    #(img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar10.load_data()
+    local_data_path = 'dataset_downloaded/cifar-10-python.tar.gz'
+    if os.path.exists(local_data_path):
+        (img_train, label_train), (img_test, label_test) = load_local_cifar10(local_data_path)
+    else:
+        print(f"Warning: Local file {local_data_path} not found. Falling back to Keras automatic download...")
+        (img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar10.load_data()
 
     img_train = img_train.astype(float)
     img_test = img_test.astype(float)

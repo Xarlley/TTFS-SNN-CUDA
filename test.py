@@ -121,6 +121,10 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                         fname+="_outlier"
 
                     print("save time constant: file_name: {:s}".format(fname))
+                    save_dir = os.path.dirname(fname)
+                    if not os.path.exists(save_dir):
+                        print(f"Directory {save_dir} not found. Creating it...")
+                        os.makedirs(save_dir, exist_ok=True)
                     f = open(fname,'w')
 
                     # time const

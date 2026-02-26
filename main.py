@@ -9,8 +9,8 @@ sys.path.insert(0,'./')
 from datetime import datetime
 
 
-en_gpu=False
-#en_gpu=True
+#en_gpu=False
+en_gpu=True
 
 gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
