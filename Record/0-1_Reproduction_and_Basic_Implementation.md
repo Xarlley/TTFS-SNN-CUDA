@@ -19,88 +19,139 @@ python main.py \
 
 ## 收集统计数据
 
+修改 `configs/weight_norm.conf`
+
+开启写统计数据的开关：
+
 ```
-python main.py \
-    --dataset=CIFAR-10 \
-    --ann_model=VGG16 \
-    --model_name=vgg_cifar_ro_0 \
-    --nn_mode=ANN \
-    --en_train=False \
-    --f_write_stat=True \
-    --f_stat_train_mode=True \
-    --batch_size=100 \
-    --checkpoint_load_dir=./models_ckpt \
-    --checkpoint_dir=./models_ckpt \
-    --use_bn=True \
-    --use_bias=True
+f_write_stat_train_data=True
+#f_write_stat_train_data=False
 ```
+
+修改 `run.sh`
+
+```
+# --- 模型和模式选择 ---
+nn_mode='ANN'             # 必须是 ANN
+exp_case='VGG16_CIFAR-10'
+
+# --- 运行模式 ---
+training_mode=False       # 必须是 False，因为我们是跑推理来收集数据
+```
+
+运行 `run.sh`
+
+```
+bash run.sh
+```
+
+触发OOM时的修复：
+
+修改 `run.sh`
+
+找到全量测试开关，并将其关闭
+
+```
+# full test
+#f_full_test=True       <-- 注释掉 True
+f_full_test=False      <-- 取消注释 False
+```
+
+修改子集的数据量
+
+```
+###############################################################
+# Batch size - small test
+###############################################################
+
+# only when (f_full_test = False)
+batch_size=100           <-- 建议改成 100
+idx_test_dataset_s=0
+num_test_dataset=1000    <-- 建议改成 1000 (跑 10 个 Batch)
+```
+
+重新运行 `run.sh`
 
 ## 训练时间常数
 
-```
-python main.py \
-    --dataset=CIFAR-10 \
-    --ann_model=VGG16 \
-    --model_name=vgg_cifar_ro_0 \
-    --nn_mode=SNN \
-    --en_train=False \
-    --f_train_time_const=True \
-    --epoch_train_time_const=6 \
-    --batch_size=100 \
-    --checkpoint_load_dir=./models_ckpt \
-    --checkpoint_dir=./models_ckpt \
-    --path_stat=./stat/vgg_cifar_ro_0/ \
-    --use_bn=True \
-    --use_bias=True \
-    --f_fused_bn=True \
-    --f_w_norm_data=True \
-    --f_write_stat=False \
-    --neural_coding=TEMPORAL \
-    --input_spike_mode=TEMPORAL \
-    --n_type=IF \
-    --n_init_vth=1.0 \
-    --tc=20 \
-    --time_fire_start=80 \
-    --time_fire_duration=80 \
-    --time_window=80 \
-    --time_step=1500 \
-    --time_const_save_interval=10000 \
-    --f_refractory=True \
-    --f_record_first_spike_time=True
-```
-
-注意：之前在做MNIST任务时，`stat/`中的统计信息被直接保存在了`stat/`目录下，而没有加以`model_name`命名的子目录。这次加上了。所以统计信息在`stat/vgg_cifar_ro_0/`目录中。使用了`--path_stat=./stat/vgg_cifar_ro_0/`参数来指定。而`--checkpoint_load_dir=./models_ckpt`和`--checkpoint_dir=./models_ckpt`在代码中会自动完成目录拼接，所以不需要手动指定以`model_name`命名的子目录。
-
-## 最终的推理
+修改 configs/weight_norm.conf
 
 ```
-python main.py \
-    --dataset=CIFAR-10 \
-    --ann_model=VGG16 \
-    --model_name=vgg_cifar_ro_0 \
-    --nn_mode=SNN \
-    --en_train=False \
-    --f_load_time_const=True \
-    --time_const_num_trained_data=60000 \
-    --batch_size=100 \
-    --checkpoint_load_dir=./models_ckpt \
-    --checkpoint_dir=./models_ckpt \
-    --path_stat=./stat/vgg_cifar_ro_0/ \
-    --use_bn=True \
-    --use_bias=True \
-    --f_fused_bn=True \
-    --f_w_norm_data=True \
-    --f_write_stat=False \
-    --neural_coding=TEMPORAL \
-    --input_spike_mode=TEMPORAL \
-    --n_type=IF \
-    --n_init_vth=1.0 \
-    --tc=20 \
-    --time_fire_start=80 \
-    --time_fire_duration=80 \
-    --time_window=80 \
-    --time_step=1500 \
-    --f_refractory=True \
-    --f_record_first_spike_time=True
+Bash
+# 修改前：
+f_write_stat_train_data=True
+#f_write_stat_train_data=False
+
+# 修改后：
+#f_write_stat_train_data=True
+f_write_stat_train_data=False
 ```
+
+修改 `run.sh`，找到对应行并修改为以下状态：
+
+```
+#nn_mode='ANN'
+nn_mode='SNN'       <-- 确保这里是 SNN
+
+# full test
+f_full_test=True    <-- 取消注释 True，恢复全量测试
+#f_full_test=False  <-- 注释掉 False
+
+f_load_time_const=False         <-- 修改为 False (不加载旧的)
+#f_load_time_const=True
+
+# train time constant for temporal coding
+#f_train_time_const=False
+f_train_time_const=True         <-- 修改为 True (开启训练)
+
+tc=20
+time_fire_start=40              <-- 确保这里是 40 (而不是 80)
+time_fire_duration=80
+time_window=${time_fire_duration}
+
+time_const_init_file_name='./temporal_coding/time_const'
+```
+
+运行 `run.sh`
+
+## 进行最终推理
+
+修改 `run.sh`
+
+开启加载 (Load) 开关
+
+```
+# 修改前：
+f_load_time_const=False
+#f_load_time_const=True
+
+# 修改后：
+#f_load_time_const=False
+f_load_time_const=True
+```
+
+关闭训练 (Train) 开关
+
+```
+# 修改前：
+#f_train_time_const=False
+f_train_time_const=True
+
+# 修改后：
+f_train_time_const=False
+#f_train_time_const=True
+```
+
+确认其他参数保持原样
+
+```
+time_const_num_trained_data=60000
+time_const_init_file_name='./temporal_coding/time_const'
+time_fire_start=40
+```
+
+运行 `run.sh`，即可完成最终的 SNN 推理测试。
+
+
+
 
