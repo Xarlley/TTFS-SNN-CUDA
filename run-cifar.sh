@@ -63,10 +63,10 @@ time_step_save_interval=10
 ###############################################################
 
 # only when (f_full_test = False)
-batch_size=25
+batch_size=100
 
 idx_test_dataset_s=0
-num_test_dataset=25
+num_test_dataset=1000
 
 
 ###############################################################################
@@ -157,13 +157,13 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 #
-f_load_time_const=False
-#f_load_time_const=
+#f_load_time_const=False
+f_load_time_const=True
 
 #
 # train time constant for temporal coding
-#f_train_time_const=False
-f_train_time_const=True
+f_train_time_const=False
+#f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
@@ -171,7 +171,7 @@ f_train_time_const_outlier=True
 
 
 #
-time_const_init_file_name='./temporal_coding'
+time_const_init_file_name='./temporal_coding/time_const'
 
 time_const_num_trained_data=60000
 #time_const_num_trained_data=50000
